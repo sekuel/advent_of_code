@@ -1,9 +1,9 @@
 WITH RECURSIVE input AS (
     SELECT
-        unnest(split(column0, '')) pipe,
+        unnest(split(column0, '')) AS pipe,
         generate_subscripts(split(column0, ''), 1) AS x,
         row_number() OVER () AS y
-    FROM read_csv_auto('~/10/input.txt', sep='')
+    FROM read_csv_auto('~/10/input.txt', sep = '')
 ), directions (pipe, ns, ew) AS (
     VALUES
         ('-',  0, -1), ('-', 0,  1),
@@ -45,7 +45,7 @@ WITH RECURSIVE input AS (
         input.x, input.y, 
         IF(pipes.pipe IS NOT NULL, 'visited', 'unvisited') AS stat
     FROM input 
-    LEFT JOIN (SELECT DISTINCT pipe, x, y FROM pipes) pipes using (x, y)
+    LEFT JOIN (SELECT DISTINCT pipe, x, y FROM pipes) pipes USING (x, y)
     ORDER BY y, x
 ), scanlines AS (
     SELECT
