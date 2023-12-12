@@ -59,14 +59,14 @@ WITH RECURSIVE input AS (
     FROM visited
 ), nicer_pipes(pipe, nice_pipe) AS (
     VALUES
-            ('S', 'S'),
-            ('.', '·'),
-            ('-', '─'),
-            ('|', '│'),
-            ('F', '╭'),
-            ('7', '╮'), 
-            ('L', '╰'),
-            ('J', '╯')
+        ('S', 'S'),
+        ('.', '·'),
+        ('-', '─'),
+        ('|', '│'),
+        ('F', '╭'),
+        ('7', '╮'), 
+        ('L', '╰'),
+        ('J', '╯')
 ), maze AS (
     SELECT 
         y, 
