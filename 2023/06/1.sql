@@ -3,10 +3,10 @@ WITH input AS (
         row_number() OVER () as id, 
         generate_subscripts(regexp_extract_all(string_split(column0, ':')[2], '\d+'), 1) AS race_id,
         unnest(regexp_extract_all(string_split(column0, ':')[2], '\d+')) AS val
-    FROM read_csv_auto('~/06/input.txt')
+    FROM read_csv_auto('./2023/06/input.txt')
 ), combined_input AS (
     SELECT
-        'Part I' AS parts,
+        'Part I' AS part,
         race_id,
         max(CASE id WHEN 1 THEN val END)::bigint AS duration,
         max(CASE id WHEN 2 THEN val END)::bigint AS distance
@@ -14,7 +14,7 @@ WITH input AS (
     GROUP BY 1,2
     UNION ALL
     SELECT 
-        'Part II' as parts,
+        'Part II' as part,
         1 AS race_id,
         replace(string_agg(CASE id WHEN 1 THEN val END), ',','')::bigint AS duration,
         replace(string_agg(CASE id WHEN 2 THEN val END), ',','')::bigint AS distance
@@ -24,11 +24,11 @@ WITH input AS (
     SELECT *, unnest(range(0, duration)) AS speed
     FROM combined_input
 ), fastest as ( 
-    SELECT parts, race_id, count(1) AS winnings 
+    SELECT part, race_id, count(1) AS winnings 
     FROM speeds
     WHERE distance < speed * (duration - speed)
     GROUP BY 1,2
 )
-SELECT parts, product(winnings) FROM fastest WHERE parts = 'Part I' GROUP BY 1
+SELECT part, product(winnings)::int AS answer FROM fastest WHERE part = 'Part I' GROUP BY 1
 UNION ALL
-SELECT parts, winnings FROM fastest WHERE parts = 'Part II';
+SELECT part, winnings FROM fastest WHERE part = 'Part II';

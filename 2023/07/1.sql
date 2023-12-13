@@ -24,7 +24,7 @@ WITH input AS (
                     WHEN 'K' THEN 13
                     WHEN 'A' THEN 14
                 ELSE c::INT END) AS card_value_2
-    FROM read_csv_auto('~/07/input.csv')
+    FROM read_csv_auto('./2023/07/input.csv')
 ), with_jokers AS (
     SELECT 
         *, 
@@ -49,16 +49,16 @@ WITH input AS (
         unnest(cards_2) AS card_2,
     FROM with_jokers
 ), counting_cards AS (
-    SELECT 'Part I' AS parts, id, _rn, card_1, count(*) AS counts
+    SELECT 'Part I' AS part, id, _rn, card_1, count(*) AS counts
     FROM unnested_cards
     GROUP BY 1,2,3,4
     UNION ALL 
-    SELECT 'Part II' AS parts, id, _rn, card_2, count(*) AS counts
+    SELECT 'Part II' AS part, id, _rn, card_2, count(*) AS counts
     FROM unnested_cards
     GROUP BY 1,2,3,4
 ), hand_types AS (
     SELECT 
-        parts,
+        part,
         id, 
         _rn,
         string_agg(counts ORDER BY counts DESC) AS hand_type
@@ -66,7 +66,7 @@ WITH input AS (
     GROUP BY 1,2,3
 ), good_hands AS (
     SELECT 
-        parts,
+        part,
         id, 
         max(hand_type) AS hand_type
     FROM hand_types
@@ -75,12 +75,10 @@ WITH input AS (
     SELECT 
         *, 
         row_number() OVER (
-            PARTITION BY parts 
-            ORDER BY hand_type, if(parts = 'Part I', card_value, card_value_2)
+            PARTITION BY part 
+            ORDER BY hand_type, if(part = 'Part I', card_value, card_value_2)
             ) * bid AS score,
     FROM good_hands 
     JOIN input USING (id)
 )
-SELECT parts, sum(score) AS answer
-FROM scores 
-GROUP BY 1;
+SELECT part, sum(score) AS answer FROM scores GROUP BY 1;

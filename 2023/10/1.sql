@@ -3,7 +3,7 @@ WITH RECURSIVE input AS (
         unnest(split(column0, '')) AS pipe,
         generate_subscripts(split(column0, ''), 1) AS x,
         row_number() OVER () AS y
-    FROM read_csv_auto('~/10/input.txt', sep = '')
+    FROM read_csv_auto('./2023/10/input.txt', sep = '')
 ), directions (pipe, ns, ew) AS (
     VALUES
         ('-',  0, -1), ('-', 0,  1),
@@ -43,7 +43,7 @@ WITH RECURSIVE input AS (
     SELECT DISTINCT 
         input.pipe, 
         input.x, input.y, 
-        IF(pipes.pipe IS NOT NULL, 'visited', 'unvisited') AS stat
+        IF(pipes.pipe IS NOT NULL, true, false) AS is_visited
     FROM input 
     LEFT JOIN (SELECT DISTINCT pipe, x, y FROM pipes) pipes USING (x, y)
     ORDER BY y, x
@@ -53,7 +53,7 @@ WITH RECURSIVE input AS (
         sum(CASE
                 WHEN 
                     pipe IN ('|', 'J', 'L') 
-                    AND stat = 'visited'
+                    AND is_visited
                 THEN 1
             END) OVER (PARTITION BY y ORDER BY x) % 2 = 1 AS is_odd
     FROM visited
@@ -72,7 +72,7 @@ WITH RECURSIVE input AS (
         y, 
         string_agg(
             CASE 
-                WHEN stat = 'unvisited' AND is_odd THEN '■'
+                WHEN is_visited IS false AND is_odd THEN '🦆'
                 ELSE nice_pipe
             END
             , '' ORDER BY x) AS nicer_pipe
@@ -80,8 +80,8 @@ WITH RECURSIVE input AS (
     JOIN nicer_pipes USING (pipe)
     GROUP BY 1 ORDER BY 1
 )
-SELECT 'Part I' AS parts, [(max(distance) // 2)] AS answer FROM pipes
+SELECT 'Part I' AS part, [(max(distance) // 2)] AS answer FROM pipes
 UNION ALL
-SELECT 'Part II' AS parts, [count(*)] AS answer FROM scanlines WHERE stat = 'unvisited' AND is_odd
+SELECT 'Part II' AS part, [count(*) FILTER (is_visited IS false AND is_odd)] AS answer FROM scanlines 
 UNION ALL
-SELECT 'Maze' AS parts, list(maze.nicer_pipe ORDER BY maze.y) AS answer FROM maze;
+SELECT 'Maze' AS part, list(maze.nicer_pipe ORDER BY maze.y) AS answer FROM maze;

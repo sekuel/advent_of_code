@@ -3,14 +3,14 @@ WITH RECURSIVE input AS (
         row_number() OVER () AS rn,
         generate_subscripts(split(column0, ' '), 1) AS pos,
         unnest(split(column0, ' ')::bigint []) AS val
-    FROM read_csv_auto('~/09/input.csv', sep='')
+    FROM read_csv_auto('./2023/09/input.csv', sep='')
 ), diffs AS (
     SELECT 
         rn,
         pos,
         val,
         lead(val) OVER (PARTITION BY rn ORDER BY pos) AS next_val,
-        next_val - val) AS diff,
+        (next_val - val) AS diff,
     FROM input
 ), init AS (
     SELECT
@@ -43,10 +43,10 @@ WITH RECURSIVE input AS (
 ), backwards AS (
     SELECT 
         rn,  
-        SUM(first_value * (-1)^(iter)) AS pre_ext_value 
+        SUM(first_value * (-1)^(iter))::int AS first_ext_value 
     FROM first_and_last 
     GROUP BY 1
 )
-SELECT 'Part I' AS parts, sum(last_ext_value) AS answer FROM first_and_last
+SELECT 'Part I' AS part, sum(last_ext_value) AS answer FROM first_and_last
 UNION ALL
-SELECT 'Part II' AS parts, sum(pre_ext_value) AS answer FROM backwards;
+SELECT 'Part II' AS part, sum(first_ext_value) AS answer FROM backwards;

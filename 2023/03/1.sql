@@ -3,7 +3,7 @@ WITH input AS (
         row_number() OVER () AS _row,
         string_split_regex(parts, '[^\d]') AS val_num,
         string_split_regex(parts, '') AS val_all
-    FROM read_csv('~/03/input.txt', columns = { parts: text }, delim = '')
+    FROM read_csv('./2023/03/input.txt', columns = { parts: text }, delim = '')
 ), stg_num_grid AS (
     SELECT
         _row,
@@ -76,11 +76,11 @@ WITH input AS (
         _row,
         _col_symbol,
         count(*) AS gear_count,
-        product(val) AS gear_ratio
+        product(val)::int AS gear_ratio
     FROM joined
     WHERE symbol = '*'
     GROUP BY 1,2
 )
-SELECT 'Part I' AS parts, sum(val) AS answer FROM joined WHERE symbol IS NOT NULL
+SELECT 'Part I' AS part, sum(val) FILTER (symbol IS NOT NULL) AS answer FROM joined
 UNION ALL
-SELECT 'Part II' AS parts, sum(gear_ratio) AS answer FROM gear_ratios WHERE gear_count = 2;
+SELECT 'Part II' AS part, sum(gear_ratio) FILTER (gear_count = 2) AS answer FROM gear_ratios;

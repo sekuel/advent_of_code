@@ -2,7 +2,7 @@ WITH RECURSIVE input AS (
     SELECT
         row_number() OVER () AS rn,
         column0,
-    FROM read_csv_auto('~/08/input.csv', sep='')
+    FROM read_csv_auto('./2023/08/input.csv', sep='')
 ), directions AS (
     SELECT
         unnest(split(column0, '')) AS direction,
@@ -72,6 +72,6 @@ WITH RECURSIVE input AS (
     JOIN max_walks_id
         ON second_walk.id + 1 = max_walks_id.id
 )
-SELECT 'Part I' AS parts, count(n) AS answer FROM walk
+SELECT 'Part I' AS part, count(n) AS answer FROM walk
 UNION ALL
-SELECT 'Part II' AS parts, max(lcm) AS answer FROM second_walk;
+SELECT 'Part II' AS part, max(lcm) AS answer FROM second_walk;

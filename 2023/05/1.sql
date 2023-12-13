@@ -2,7 +2,7 @@ WITH RECURSIVE seeds AS (
     SELECT unnest(seed)::bigint AS seed
     FROM (
         SELECT split(split_part(column0, ': ', 2), ' ') AS seed 
-        FROM read_csv_auto('~/05/input.csv') LIMIT 1
+        FROM read_csv_auto('./2023/05/input.csv') LIMIT 1
     )
 ), maps AS (
     SELECT 
@@ -16,7 +16,7 @@ WITH RECURSIVE seeds AS (
             column0, 
             regexp_matches(column0, '[\d]') checks,
             sum(CASE WHEN checks = false THEN 1 ELSE 0 END) OVER (ROWS UNBOUNDED PRECEDING) AS id
-        FROM read_csv_auto('~/05/input.csv', skip='2')
+        FROM read_csv_auto('./2023/05/input.csv', skip='2')
         WHERE column0 IS NOT NULL
     )
     QUALIFY regexp_matches(column0, '[\d]')
@@ -49,4 +49,4 @@ WITH RECURSIVE seeds AS (
         AND ranges.id = walk.id + 1
     WHERE walk.id < 7
 )
-SELECT 'Part I' AS parts, min(_next) AS answer FROM walk WHERE id = 7;
+SELECT 'Part I' AS part, min(_next) AS answer FROM walk WHERE id = 7;
