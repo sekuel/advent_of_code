@@ -17,7 +17,7 @@ WITH RECURSIVE input AS (
         regexp_extract_all(column0, '\w{3}')[3] AS r
     FROM input
     WHERE rn > 2
-), walk AS (
+), walk AS MATERIALIZED (
     SELECT
         0 AS n,
         networks.node AS node,
@@ -34,7 +34,7 @@ WITH RECURSIVE input AS (
     JOIN networks ON walk._next = networks.node
     JOIN directions ON directions.step = ((walk.n + 1) % directions.max_steps)
     WHERE walk._next != 'ZZZ'
-), walk_2 AS (
+), walk_2 AS MATERIALIZED (
     SELECT
         0 AS n,
         networks.node AS first_node,
@@ -55,14 +55,14 @@ WITH RECURSIVE input AS (
         ON walk_2._next = networks.node
         AND networks.node[3] != 'Z'
     JOIN directions ON directions.step = ((walk_2.n + 1) % directions.max_steps)
-), max_walks AS materialized (
+), max_walks AS MATERIALIZED (
     SELECT 
         max(n)+1 AS max_step 
     FROM walk_2 
     GROUP BY first_node
-), max_walks_id AS materialized (
+), max_walks_id AS MATERIALIZED (
     SELECT *, row_number() OVER () - 1 AS id FROM max_walks
-), second_walk AS (
+), second_walk AS MATERIALIZED (
     SELECT id, max_step::int64 AS lcm FROM max_walks_id
     UNION ALL
     SELECT

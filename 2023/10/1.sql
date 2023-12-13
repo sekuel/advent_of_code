@@ -12,7 +12,7 @@ WITH RECURSIVE input AS (
         ('J', -1,  0), ('J', 0, -1),
         ('7',  1,  0), ('7', 0, -1),
         ('F',  1,  0), ('F', 0,  1)
-), pipes AS (
+), pipes AS MATERIALIZED (
     SELECT
         maps.pipe AS curr_pipe,
         maps.x AS curr_x,
@@ -39,7 +39,7 @@ WITH RECURSIVE input AS (
     JOIN input AS _next 
         ON (_next.x != _curr.curr_x OR _next.y != _curr.curr_y) 
         AND _next.x = _curr.x + directions.ew AND _next.y = _curr.y + directions.ns
-), visited AS (
+), visited AS MATERIALIZED (
     SELECT DISTINCT 
         input.pipe, 
         input.x, input.y, 
@@ -47,7 +47,7 @@ WITH RECURSIVE input AS (
     FROM input 
     LEFT JOIN (SELECT DISTINCT pipe, x, y FROM pipes) pipes USING (x, y)
     ORDER BY y, x
-), scanlines AS (
+), scanlines AS MATERIALIZED (
     SELECT
         *,
         sum(CASE
