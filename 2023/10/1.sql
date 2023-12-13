@@ -40,9 +40,9 @@ WITH RECURSIVE input AS (
         ON (_next.x != _curr.curr_x OR _next.y != _curr.curr_y) 
         AND _next.x = _curr.x + directions.ew AND _next.y = _curr.y + directions.ns
 ), visited AS MATERIALIZED (
-    SELECT DISTINCT 
-        input.pipe, 
-        input.x, input.y, 
+    SELECT DISTINCT
+        input.pipe,
+        input.x, input.y,
         IF(pipes.pipe IS NOT NULL, true, false) AS is_visited
     FROM input 
     LEFT JOIN (SELECT DISTINCT pipe, x, y FROM pipes) pipes USING (x, y)
@@ -50,12 +50,7 @@ WITH RECURSIVE input AS (
 ), scanlines AS MATERIALIZED (
     SELECT
         *,
-        sum(CASE
-                WHEN 
-                    pipe IN ('|', 'J', 'L') 
-                    AND is_visited
-                THEN 1
-            END) OVER (PARTITION BY y ORDER BY x) % 2 = 1 AS is_odd
+        sum(1) FILTER (is_visited AND pipe IN ('|', 'J', 'L')) OVER (PARTITION BY y ORDER BY x) % 2 = 1 AS is_odd
     FROM visited
 ), nicer_pipes(pipe, nice_pipe) AS (
     VALUES
@@ -64,24 +59,24 @@ WITH RECURSIVE input AS (
         ('-', '─'),
         ('|', '│'),
         ('F', '╭'),
-        ('7', '╮'), 
+        ('7', '╮'),
         ('L', '╰'),
         ('J', '╯')
-), maze AS (
+), maze AS MATERIALIZED (
     SELECT 
         y, 
         string_agg(
             CASE 
-                WHEN is_visited IS false AND is_odd THEN '🦆'
+                WHEN is_odd AND NOT is_visited THEN '🦆'
                 ELSE nice_pipe
             END
             , '' ORDER BY x) AS nicer_pipe
-    FROM scanlines 
+    FROM scanlines
     JOIN nicer_pipes USING (pipe)
-    GROUP BY 1 ORDER BY 1
+    GROUP BY 1
 )
 SELECT 'Part I' AS part, [(max(distance) // 2)] AS answer FROM pipes
 UNION ALL
-SELECT 'Part II' AS part, [count(*) FILTER (is_visited IS false AND is_odd)] AS answer FROM scanlines 
+SELECT 'Part II' AS part, [count(*) FILTER (is_odd AND NOT is_visited)] AS answer FROM scanlines
 UNION ALL
 SELECT 'Maze' AS part, list(maze.nicer_pipe ORDER BY maze.y) AS answer FROM maze;
